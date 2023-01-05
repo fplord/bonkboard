@@ -50,7 +50,7 @@
     "swr": "^2.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.7",
+    "@babel/core": "^7.20.12",
     "@chakra-ui/cli": "^2.3.0",
     "@next/eslint-plugin-next": "^13.1.1",
     "@testing-library/jest-dom": "^5.16.5",
