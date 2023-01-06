@@ -3,6 +3,7 @@ import Image from "next/image";
 import { RgbStringColorPicker } from "react-colorful";
 import { Button, Grid, GridItem, Text } from "@chakra-ui/react";
 
+// import { MAX_PIXELS } from "src/config/constants";
 import { RgbInput } from "@/components/landing/Board/RgbInput";
 import { SubmitButton } from "@/components/landing/Board/SubmitButton";
 import { useSnackbarContext } from "@/contexts/SnackbarContext";
@@ -18,8 +19,6 @@ const ZOOM_CANVAS_SIZE = {
   width: 400,
   height: 400,
 };
-
-const MAX_PIXELS = 23;
 
 // Count all the non-zero values of keys in o
 // Used to count the number of unique changed pixels
@@ -125,7 +124,7 @@ export function Board() {
   }
 
   function paint(e: any) {
-    if (pixelsChangedNumber >= MAX_PIXELS) return;
+    // if (pixelsChangedNumber >= MAX_PIXELS) return;
 
     const canvas = canvasRef.current;
     if (canvas) {

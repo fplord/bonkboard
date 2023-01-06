@@ -7,6 +7,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import BN from "bn.js";
+import { MAX_PIXELS } from "src/config/constants";
 
 import { useBoardProgramContext } from "@/contexts/BoardProgramContext";
 import { useSnackbarContext } from "@/contexts/SnackbarContext";
@@ -53,7 +54,7 @@ export function SubmitButton({
     setIsPending(true);
 
     let closeCurrentSnackbar: () => void | undefined;
-    let tx: Transaction | undefined;
+    let lastTx: Transaction | undefined;
 
     try {
       const tmp: Record<string, any> = {};
@@ -104,7 +105,14 @@ export function SubmitButton({
         ixs.push(ix);
       }
 
-      tx = new Transaction().add(...ixs);
+      const batches = ixs.length / MAX_PIXELS;
+
+      const txs: Transaction[] = [];
+
+      for (let i = 0; i < batches; i++) {
+        const batchIxs = ixs.slice(i * MAX_PIXELS, (i + 1) * MAX_PIXELS);
+        txs.push(new Transaction().add(...batchIxs));
+      }
 
       const { close: closeProgressSnackbar } = enqueueSnackbar({
         title: "Bonk in progress",
@@ -116,13 +124,13 @@ export function SubmitButton({
       });
       closeCurrentSnackbar = closeProgressSnackbar;
 
-      console.log(tx);
-
-      const [sig] = await signSendConfirm(
+      const sigs = await signSendConfirm(
         wallet,
-        [{ tx, signers: [] }],
+        txs.map((tx) => ({ tx, signers: [] })),
         connection
       );
+
+      const lastSig = sigs[sigs.length + 1];
 
       await mutate();
 
@@ -137,17 +145,17 @@ export function SubmitButton({
         links: [
           {
             label: "View on explorer",
-            href: txToSolanaFMLink(sig, network),
+            href: txToSolanaFMLink(lastSig, network),
           },
         ],
       });
     } catch (err) {
       const links = [
-        ...(tx
+        ...(lastTx
           ? [
               {
                 label: "View on explorer",
-                href: txToSimulationLink(tx, network),
+                href: txToSimulationLink(lastTx, network),
               },
             ]
           : []),
