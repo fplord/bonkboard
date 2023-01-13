@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import ReactShadow from "react-shadow/emotion";
 import { ClusterType } from "@soceanfi/stake-pool-sdk";
 import {
   WalletAdapterNetwork,
