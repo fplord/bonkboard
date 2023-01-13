@@ -3,6 +3,9 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { ChakraProvider } from "@chakra-ui/react";
 
+import { ChatProviders } from "@strata-foundation/chat-ui";
+import ReactShadow from "react-shadow/emotion";
+
 import { SnackbarProvider } from "@/contexts/SnackbarContext";
 import theme from "@/theme/index";
 
@@ -27,9 +30,14 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       </Head>
 
       <ChakraProvider theme={theme}>
-        <SnackbarProvider>
-          {getLayout(<Component {...pageProps} />)}
-        </SnackbarProvider>
+        <ReactShadow.div>
+          {/*@ts-ignore*/}
+          <ChatProviders resetCss onError={err => console.error(err)}>
+            <SnackbarProvider>
+              {getLayout(<Component {...pageProps} />)}
+            </SnackbarProvider>
+          </ChatProviders>
+        </ReactShadow.div>
       </ChakraProvider>
     </>
   );

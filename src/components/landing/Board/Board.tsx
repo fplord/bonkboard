@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, } from "react";
 import Image from "next/image";
 import { RgbStringColorPicker } from "react-colorful";
 import { useKey } from "react-use";
@@ -14,6 +14,14 @@ import {
   keyframes,
   Text,
 } from "@chakra-ui/react";
+
+import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js"
+import * as anchor from "@project-serum/anchor";
+import { BN } from "bn.js";
+import { ChatSdk } from "@strata-foundation/chat";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { useMessages, Chatroom, SendMessageProvider } from "@strata-foundation/chat-ui";
 
 import { HowToDraw } from "@/components/landing/Board/HowToDraw";
 import { RgbInput } from "@/components/landing/Board/RgbInput";
@@ -91,6 +99,9 @@ const DEFAULT_SCALE = 5;
 
 export function Board() {
   const [isPending, setIsPending] = useState(false);
+  const wallet = useAnchorWallet();
+  const { publicKey } = useWallet();
+  const { connection } = useConnection();
 
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
   const [zoomContext, setZoomContext] =
@@ -107,9 +118,24 @@ export function Board() {
   const [pixelsTouched, setPixelsTouched] = useState<{ [key: string]: number }>(
     {}
   );
+  const [chatObject, setChatObject] = useState<any>(null);
   const [drawBuffer, setdrawBuffer] = useState<{ [key: string]: [] }>({});
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const zoomCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  const {
+    messages,
+    loadingInitial,
+    loadingMore,
+    hasMore,
+    fetchMore,
+    fetchNew,
+  } = useMessages({
+    chat: chatObject,
+    numTransactions: 50,
+  });
+
+  console.log("loading messages....", messages);
 
   const handleRgbChange = (rgb: string) => {
     const hex = rgbToHex(rgb);
@@ -138,6 +164,30 @@ export function Board() {
 
   // Disable page scrolling with arrow keys and space
   usePreventKeyboardScrolling();
+
+  useEffect(() => {
+    if (publicKey && wallet && connection) {
+      const provider = new anchor.AnchorProvider(connection, wallet, {
+        preflightCommitment: "processed",
+      });
+      // @ts-ignore
+      async function doChatThings() {
+        const chatSdk = await ChatSdk.init(provider);
+        var { chat } =
+          await chatSdk.initializeChat({
+            name: "Bonk Board Chat",
+            permissions: {
+              readPermissionKey: NATIVE_MINT,
+              postPermissionKey: NATIVE_MINT,
+              postPermissionAmount: 0.00,
+            },
+          });
+        console.log('chat', chat);
+        setChatObject(chat);
+      }
+      doChatThings();
+    }
+  }, [publicKey, wallet, connection]);
 
   useEffect(() => {
     if (error) {
@@ -666,7 +716,18 @@ export function Board() {
             border: "1px solid black",
           }}
         />
-      </GridItem>
-    </Grid>
+        {chatObject ? (
+          <div style={{ height: "300px" }}>
+            {/*@ts-ignore*/}
+            <SendMessageProvider chatKey={chatObject}>
+              <Chatroom
+                chatKey={chatObject}
+              />
+            </SendMessageProvider>
+          </div>
+        ) : null
+        }
+      </GridItem >
+    </Grid >
   );
 }
