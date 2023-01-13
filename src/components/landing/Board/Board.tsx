@@ -86,6 +86,7 @@ type ActionMode = "normal" | "eyedropper" | "draw" | "translate";
 
 const LEFT_MOUSE_BUTTON = 0;
 const MOUSEWHEEL_BUTTON = 1;
+const RIGHT_MOUSE_BUTTON = 2;
 
 const DEFAULT_SCALE = 5;
 
@@ -101,8 +102,8 @@ export function Board() {
   const [translateX, setTranslateX] = useState<number>(0);
   const [translateY, setTranslateY] = useState<number>(0);
   const [actions, setActions] = useState<any[]>([]);
-  const [mouseX, setMouseX] = useState<number>(0);
-  const [mouseY, setMouseY] = useState<number>(0);
+  const [mouseX, setMouseX] = useState<number>(250);
+  const [mouseY, setMouseY] = useState<number>(250);
   const [actionMode, setActionMode] = useState<ActionMode>("normal");
   const [pixelsTouched, setPixelsTouched] = useState<{ [key: string]: number }>(
     {}
@@ -494,6 +495,7 @@ export function Board() {
             // onClick={(e) => {
             //   performActionOnCanvas(e);
             // }}
+            onContextMenu={(e) => e.preventDefault()}
             onMouseDown={({ button }) => {
               if (button === LEFT_MOUSE_BUTTON) {
                 if (actionMode === "normal") {
@@ -505,12 +507,16 @@ export function Board() {
                 }
               } else if (button === MOUSEWHEEL_BUTTON) {
                 setActionMode("translate");
+              } else if (button === RIGHT_MOUSE_BUTTON) {
+                setActionMode("translate");
               }
             }}
             onMouseUp={({ button }) => {
               if (button === LEFT_MOUSE_BUTTON) {
                 setActionMode("normal");
               } else if (button === MOUSEWHEEL_BUTTON) {
+                setActionMode("normal");
+              } else if (button === RIGHT_MOUSE_BUTTON) {
                 setActionMode("normal");
               }
             }}
