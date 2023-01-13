@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 import { useCallback, useEffect, useMemo, useRef, useState, } from "react";
 import Image from "next/image";
 import { RgbStringColorPicker } from "react-colorful";
@@ -14,14 +15,13 @@ import {
   keyframes,
   Text,
 } from "@chakra-ui/react";
-
+import * as anchor from "@project-serum/anchor";
+import { NATIVE_MINT } from "@solana/spl-token";
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js"
-import * as anchor from "@project-serum/anchor";
+import { ChatSdk, MessageType } from "@strata-foundation/chat";
+import { Chatroom, SendMessageProvider, useMessages } from "@strata-foundation/chat-ui";
 import { BN } from "bn.js";
-import { ChatSdk } from "@strata-foundation/chat";
-import { NATIVE_MINT } from "@solana/spl-token";
-import { useMessages, Chatroom, SendMessageProvider } from "@strata-foundation/chat-ui";
 
 import { HowToDraw } from "@/components/landing/Board/HowToDraw";
 import { RgbInput } from "@/components/landing/Board/RgbInput";
@@ -119,9 +119,12 @@ export function Board() {
     {}
   );
   const [chatObject, setChatObject] = useState<any>(null);
+  const [chatSdkObject, setChatSdkObject] = useState<any>(null);
   const [drawBuffer, setdrawBuffer] = useState<{ [key: string]: [] }>({});
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const zoomCanvasRef = useRef<HTMLCanvasElement>(null);
+
+
 
   const {
     messages,
@@ -173,19 +176,29 @@ export function Board() {
       // @ts-ignore
       async function doChatThings() {
         const chatSdk = await ChatSdk.init(provider);
-        var { chat } =
+        const { chat } =
           await chatSdk.initializeChat({
-            name: "Bonk Board Chat",
+            name: "Bonk_Board",
             permissions: {
               readPermissionKey: NATIVE_MINT,
               postPermissionKey: NATIVE_MINT,
-              postPermissionAmount: 0.00,
+              postPermissionAmount: 0.0001,
             },
           });
-        console.log('chat', chat);
+
         setChatObject(chat);
+        setChatSdkObject(chatSdk);
+
+
+        console.log('chat', chat);
+
       }
+
+
+
       doChatThings();
+
+
     }
   }, [publicKey, wallet, connection]);
 
@@ -473,6 +486,19 @@ export function Board() {
     mutate();
   };
 
+
+  const testMessage = async () => {
+
+    const { txids } = await chatSdkObject.sendMessage({
+      chatObject,
+      message: { type: MessageType.Text, text: "Hello!" },
+      encrypted: true,
+    });
+
+    console.log("conky test")
+    console.log(txids)
+  };
+
   const handleClearImage = () => {
     setActions([]);
     setPixelsTouched({});
@@ -672,6 +698,11 @@ export function Board() {
         <Button variant="outline" size="sm" onClick={handleRefreshImage}>
           Refresh Image
         </Button>
+
+        <Button variant="outline" size="sm" onClick={testMessage}>
+          TEST MESSAGE
+        </Button>
+
         <Button variant="outline" size="sm" onClick={handleResetZoom}>
           Reset Zoom
         </Button>
@@ -718,7 +749,7 @@ export function Board() {
         />
         {chatObject ? (
           <div style={{ height: "300px" }}>
-            {/*@ts-ignore*/}
+            {/* @ts-ignore */}
             <SendMessageProvider chatKey={chatObject}>
               <Chatroom
                 chatKey={chatObject}
