@@ -21,7 +21,7 @@ export function HowToDraw({ limit }: HowToDrawProps) {
             <Text>
               To move around the canvas, use the arrow keys on your keyboard or
               the buttons on the right sidebar. To pan the canvas, hold the
-              middle mouse (mouse wheel) button and drag.
+              mouse wheel button or right-click and drag.
             </Text>
             <Text mt={2}>
               Please keep in mind that currently there is a limit of {limit}{" "}
